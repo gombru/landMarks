@@ -1,7 +1,7 @@
 train_net: "prototxt/train_emotions_distribution.prototxt"
 test_net: "prototxt/val_emotions_distribution.prototxt"
-test_iter: 10
-test_interval: 1000000
+test_iter: 0
+test_interval: 0
 base_lr: 0.0010000000475
 display: 1000000
 max_iter: 500000
