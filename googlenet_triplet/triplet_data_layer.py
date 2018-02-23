@@ -4,14 +4,13 @@ from PIL import Image
 from PIL import ImageOps
 import time
 import sys
+
 sys.path.append('/usr/src/opencv-3.0.0-compiled/lib/')
 import cv2
 import random
 
 
 class tripletDataLayer(caffe.Layer):
-
-
     def setup(self, bottom, top):
 
         # config
@@ -47,26 +46,26 @@ class tripletDataLayer(caffe.Layer):
         if len(bottom) != 0:
             raise Exception("Do not define a bottom.")
 
-        split_f = '{}/{}.txt'.format(self.dir, self.split)
+        split_f = '{}/{}.csv'.format(self.dir, self.split)
 
         num_lines = sum(1 for line in open(split_f))
-        #num_lines = 2001
+        # num_lines = 2001
 
         self.indices = np.empty([num_lines], dtype="S50")
-        self.labels = np.zeros(num_lines, 1)
+        self.labels = np.zeros(num_lines)
 
-        print "Reading labels file: " + '{}/{}.txt'.format(self.dir, self.split)
+        print "Reading labels file: " + '{}/{}.csv'.format(self.dir, self.split)
 
         with open(split_f, 'r') as annsfile:
             for c, i in enumerate(annsfile):
-                data = i.split(' ')
-                # Load path
-                self.indices[c] = data[0]
+                i = i.split(',')
+                if "landmark_id" in i[2]: continue
+                self.indices[c] = i[0].strip('\"')
                 # Load class id
-                self.labels[c] = int(data[2])
+                self.labels[c] = int(i[2])
 
                 if c % 10000 == 0: print "Read " + str(c) + " / " + str(num_lines)
-                # if c == 2000:
+                # if c == 10:
                 #      print "Stopping at 3000 labels"
                 #      break
 
@@ -87,7 +86,6 @@ class tripletDataLayer(caffe.Layer):
             for x in range(0, self.batch_size):
                 self.idx[x] = x
 
-
         # reshape tops to fit
         # === reshape tops ===
         # since we use a fixed input image size, we can shape the data layer
@@ -95,7 +93,6 @@ class tripletDataLayer(caffe.Layer):
         top[0].reshape(self.batch_size, 3, params['crop_w'], params['crop_h'])
         top[1].reshape(self.batch_size, 3, params['crop_w'], params['crop_h'])
         top[2].reshape(self.batch_size, 3, params['crop_w'], params['crop_h'])
-
 
     def reshape(self, bottom, top):
         # load image + label image pair
@@ -111,12 +108,12 @@ class tripletDataLayer(caffe.Layer):
 
             # Get a random positive image index
             anchor_label = self.labels[self.idx[x]]
-            positive_indices = np.argwhere(self.labels==anchor_label)
+            positive_indices = np.argwhere(self.labels == anchor_label)
             positive_idx = random.choice(positive_indices)
-            pos_im_id = self.indices[positive_idx]
+            pos_im_id = self.indices[positive_idx][0]
 
-            while(True):
-                negative_idx = random.randint(0, len(self.indices))
+            while (True):
+                negative_idx = random.randint(0, len(self.indices) - 1)
                 if self.labels[negative_idx] != anchor_label:
                     break
 
@@ -131,13 +128,11 @@ class tripletDataLayer(caffe.Layer):
             except:
                 print("Image could not be loaded. Using 0s")
 
-
     def forward(self, bottom, top):
         # assign output
         top[0].data[...] = self.data
         top[1].data[...] = self.data_pos
         top[2].data[...] = self.data_neg
-
 
         self.idx = np.arange(self.batch_size)
 
@@ -165,14 +160,15 @@ class tripletDataLayer(caffe.Layer):
         - subtract mean
         - transpose to channel x height x width order
         """
-        if self.dir == '../../../datasets/landmarks_recognition':
-            im = Image.open('{}/{}/{}'.format(self.dir, 'img_train', idx + '.jpg'))
+
+        # if self.dir == '../../../datasets/landmarks_recognition':
+        im = Image.open('{}/{}/{}'.format(self.dir, 'img_train', idx + '.jpg'))
 
         if self.resize:
             if im.size[0] != self.resize_w or im.size[1] != self.resize_h:
                 im = im.resize((self.resize_w, self.resize_h), Image.ANTIALIAS)
 
-        #if self.train:  # Data Aumentation
+        # if self.train:  # Data Aumentation
 
         if (self.scaling_prob is not 0):
             im = self.rescale_image(im)
@@ -214,7 +210,7 @@ class tripletDataLayer(caffe.Layer):
         width, height = im.size
         margin = self.crop_margin
         if width or height < self.crop_h:
-            im = im.resize((self.crop_h+1, self.crop_h+1), Image.ANTIALIAS)
+            im = im.resize((self.crop_h + 1, self.crop_h + 1), Image.ANTIALIAS)
             width, height = im.size
         left = random.randint(margin, width - self.crop_w - 1 - margin)
         top = random.randint(margin, height - self.crop_h - 1 - margin)

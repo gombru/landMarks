@@ -7,11 +7,11 @@ from create_solver import create_solver
 from do_solve import do_solve
 import os
 
-caffe.set_device(0)
+caffe.set_device(2)
 caffe.set_mode_gpu()
 
-# weights = '../../../datasets/SocialMedia/models/pretrained/bvlc_googlenet.caffemodel'
-# assert os.path.exists(weights)
+weights = '../../../datasets/SocialMedia/models/pretrained/bvlc_googlenet.caffemodel'
+assert os.path.exists(weights)
 
 niter = 500000
 base_lr = 0.001 #Starting from 0.01 (from quick solver) -- Working 0.001
@@ -27,12 +27,12 @@ test_iters = 100 #100
 training_id = 'landmarksRecognition_triplet_m01'
 
 #Set solver configuration
-solver_filename = create_solver('prototxt/landmarksRecognition_triplet_trainval.prototxt', 'prototxt/landmarksRecognition_triplet_trainval.prototxt', training_id, base_lr=base_lr)
+solver_filename = create_solver('prototxt/trainval_triplet.prototxt', 'prototxt/trainval_triplet.prototxt', training_id, base_lr=base_lr)
 #Load solver
 solver = caffe.get_solver(solver_filename)
 
 #Copy init weights
-# solver.net.copy_from(weights)
+solver.net.copy_from(weights)
 
 #Restore solverstate
 #solver.restore('../../../datasets/SocialMedia/models/CNNRegression/instagram_cities_1M_Inception_frozen_500_chunck_iter_280000.solverstate')
