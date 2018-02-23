@@ -24,7 +24,7 @@ test_interval = 3000 #1000
 test_iters = 100 #100
 
 #Name for training plot and snapshots
-training_id = 'landmarksRecognition_triplet_m05'
+training_id = 'landmarksRecognition_triplet_m2'
 
 #Set solver configuration
 solver_filename = create_solver('prototxt/trainval_triplet.prototxt', 'prototxt/trainval_triplet.prototxt', training_id, base_lr=base_lr)
