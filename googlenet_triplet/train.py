@@ -13,18 +13,18 @@ caffe.set_mode_gpu()
 weights = '../../../datasets/SocialMedia/models/pretrained/bvlc_googlenet.caffemodel'
 assert os.path.exists(weights)
 
-niter = 500000
+niter = 5000000
 base_lr = 0.001 #Starting from 0.01 (from quick solver) -- Working 0.001
-display_interval = 200 #200
+display_interval = 500 #200
 
-batch_size = 120 #Only used to print here
+batch_size = 10 #Only used to print here
 
 #number of validating images  is  test_iters * batchSize
-test_interval = 1000 #1000
+test_interval = 3000 #1000
 test_iters = 100 #100
 
 #Name for training plot and snapshots
-training_id = 'landmarksRecognition_triplet_m01'
+training_id = 'landmarksRecognition_triplet_m02'
 
 #Set solver configuration
 solver_filename = create_solver('prototxt/trainval_triplet.prototxt', 'prototxt/trainval_triplet.prototxt', training_id, base_lr=base_lr)
